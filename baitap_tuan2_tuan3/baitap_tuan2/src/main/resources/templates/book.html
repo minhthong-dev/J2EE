@@ -1,189 +1,260 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <title>Marvel Book Database</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Text Archive Node - Alpha</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            --marvel-red: #ed1d24;
-            --marvel-black: #202020;
-            --marvel-white: #ffffff;
-            --hover-gold: #f0131e;
+            --neon-cyan: #00f3ff;
+            --neon-purple: #bc00ff;
+            --dark-bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--marvel-black);
-            color: var(--marvel-white);
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
             margin: 0;
             padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-image: radial-gradient(circle, #333 1px, transparent 1px);
-            background-size: 30px 30px; /* Hiệu ứng chấm nhỏ như truyện tranh */
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
         }
 
         h1 {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 4rem;
-            letter-spacing: 2px;
-            color: var(--marvel-white);
-            background-color: var(--marvel-red);
-            padding: 0 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
             text-transform: uppercase;
-            transform: skew(-10deg); /* Nghiêng chữ kiểu Marvel */
-            box-shadow: 8px 8px 0px var(--marvel-white);
-            margin-bottom: 40px;
-            animation: slideIn 0.5s ease-out;
+            letter-spacing: 10px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+            margin: 0;
         }
 
-        /* Nút thêm sách mượt mà */
+        .navbar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+
+        .nav-link.active {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
         .btn-add {
             display: inline-block;
+            margin-top: 20px;
+            padding: 10px 30px;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
             text-decoration: none;
-            font-family: 'Bebas Neue', cursive;
-            font-size: 1.5rem;
-            background: var(--marvel-white);
-            color: var(--marvel-red);
-            padding: 10px 25px;
-            border-radius: 0;
-            font-weight: bold;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            border: 3px solid var(--marvel-red);
-            margin-bottom: 30px;
             text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+            transition: 0.4s;
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
         }
 
         .btn-add:hover {
-            background: var(--marvel-red);
-            color: var(--marvel-white);
-            transform: scale(1.1) rotate(2deg);
-            box-shadow: 0 10px 20px rgba(237, 29, 36, 0.4);
+            background: var(--neon-cyan);
+            color: black;
+            box-shadow: 0 0 30px var(--neon-cyan);
         }
 
-        /* Table phong cách Comic */
+        .archive-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2px;
+            position: relative;
+        }
+
         table {
-            width: 90%;
-            max-width: 1000px;
+            width: 100%;
             border-collapse: collapse;
-            background-color: #333;
-            border: 4px solid var(--marvel-white);
-            box-shadow: 15px 15px 0px var(--marvel-red);
-            overflow: hidden;
-            animation: fadeIn 1s ease-in;
+            text-align: left;
         }
 
         th {
-            background-color: var(--marvel-red);
-            color: white;
-            font-family: 'Bebas Neue', cursive;
-            font-size: 1.8rem;
-            padding: 15px;
-            text-align: left;
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
             text-transform: uppercase;
-            border-bottom: 4px solid var(--marvel-white);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            padding: 20px;
+            border-bottom: 2px solid var(--neon-cyan);
         }
 
         td {
-            padding: 15px;
-            border-bottom: 1px solid #444;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 1.1rem;
-            transition: background 0.3s;
+            color: #ddd;
+            transition: 0.3s;
         }
 
         tr:hover td {
-            background-color: #444;
-            color: var(--marvel-red);
-            font-weight: bold;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
         }
 
-        /* Nút Sửa/Xóa */
+        .book-thumb {
+            width: 60px;
+            height: 85px;
+            object-fit: cover;
+            border: 1px solid var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
         .btn {
             padding: 8px 15px;
             text-decoration: none;
-            font-family: 'Bebas Neue', cursive;
-            font-size: 1.2rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
-            transition: 0.2s;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: 0.3s;
             display: inline-block;
         }
 
         .btn-edit {
-            background-color: var(--marvel-white);
-            color: black;
-            border: 2px solid black;
-        }
-
-        .btn-edit:hover {
-            background-color: #ffd700; /* Màu vàng Iron Man */
-            transform: translateY(-3px);
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
         }
 
         .btn-delete {
-            background-color: #000;
-            color: var(--marvel-white);
-            border: 2px solid var(--marvel-red);
+            color: #ff3e3e;
+            border: 1px solid #ff3e3e;
+            margin-left: 10px;
+        }
+
+        .btn-edit:hover {
+            background: var(--neon-cyan);
+            color: black;
+            box-shadow: 0 0 15px var(--neon-cyan);
         }
 
         .btn-delete:hover {
-            background-color: var(--marvel-red);
-            transform: scale(0.9);
+            background: #ff3e3e;
+            color: white;
+            box-shadow: 0 0 15px #ff3e3e;
         }
 
-        /* Hiệu ứng Motion */
-        @keyframes slideIn {
-            from { transform: translateX(-100%) skew(-10deg); opacity: 0; }
-            to { transform: translateX(0) skew(-10deg); opacity: 1; }
+        /* HUD elements */
+        .corner {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid var(--neon-cyan);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .tl {
+            top: -2px;
+            left: -2px;
+            border-right: 0;
+            border-bottom: 0;
         }
 
-        /* Responsive */
-        @media (max-width: 600px) {
-            h1 { font-size: 2.5rem; }
-            table { font-size: 0.9rem; }
+        .tr {
+            top: -2px;
+            right: -2px;
+            border-left: 0;
+            border-bottom: 0;
+        }
+
+        .bl {
+            bottom: -2px;
+            left: -2px;
+            border-right: 0;
+            border-top: 0;
+        }
+
+        .br {
+            bottom: -2px;
+            right: -2px;
+            border-left: 0;
+            border-top: 0;
         }
     </style>
 </head>
+
 <body>
 
-    <h1>Marvel Book Database</h1>
+    <nav class="navbar">
+        <a th:href="@{/}" class="nav-link">Main Terminal</a>
+        <a th:href="@{/api/books/}" class="nav-link active">Text Archive</a>
+        <a th:href="@{/api/pics/}" class="nav-link">Visual Array</a>
+    </nav>
 
-    <div>
-        <a th:href="@{/api/books/add-book}" class="btn-add">▲ Assemble New Book</a>
+    <div class="header">
+        <h1>Text Archive Nodes</h1>
+        <a th:href="@{/api/books/add-book}" class="btn-add">▲ Initialize New Data</a>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Action</th>
-                <th>Danger Zone</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="book : ${books}">
-                <td th:text="${book.id}">1</td>
-                <td th:text="${book.title}" style="text-transform: uppercase; letter-spacing: 1px;">Tên sách mẫu</td>
-                <td th:text="${book.author}">Tác giả mẫu</td>
-                <td>
-                    <a th:href="@{/api/books/update-book/{id}(id=${book.id})}" class="btn btn-edit">Edit</a>
-                </td>
-                <td>
-                    <a th:href="@{/api/books/delete/{id}(id=${book.id})}" 
-                       class="btn btn-delete" 
-                       onclick="return confirm('Are you sure, Avenger?')">Delete</a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="archive-container">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Hash_ID</th>
+                    <th>Node_Visual</th>
+                    <th>Identity</th>
+                    <th>Origin_Source</th>
+                    <th>Credit_Cost</th>
+                    <th>Control_Panel</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="book : ${books}">
+                    <td th:text="${book.id}" style="font-family: 'Orbitron', sans-serif;">001</td>
+                    <td>
+                        <img th:if="${book.url != null and book.url != ''}" th:src="${book.url}" class="book-thumb"
+                            alt="Visual">
+                        <span th:unless="${book.url != null and book.url != ''}" style="color: #444;">NO_VISUAL</span>
+                    </td>
+                    <td th:text="${book.title}" style="color: var(--neon-cyan); font-weight: bold;">Tên sách</td>
+                    <td th:text="${book.author}">Tác giả</td>
+                    <td th:text="${book.price} + ' CR'">100 CR</td>
+                    <td>
+                        <a th:href="@{/api/books/update-book/{id}(id=${book.id})}" class="btn btn-edit">Recalibrate</a>
+                        <a th:href="@{/api/books/delete/{id}(id=${book.id})}" class="btn btn-delete"
+                            onclick="return confirm('Initiate protocol: PURGE_DATA?')">Purge</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 </body>
+
 </html>

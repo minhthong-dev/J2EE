@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Archive Injection - Node Alpha</title>
+    <title>Visual Memory Injection - PIC Form</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap"
         rel="stylesheet">
@@ -34,16 +34,17 @@
         }
 
         .form-container {
-            width: 500px;
+            width: 480px;
             background: var(--glass);
             border: 1px solid var(--neon-cyan);
             padding: 50px;
             backdrop-filter: blur(20px);
             position: relative;
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.1);
             animation: formEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
+        /* Glitchy borders */
         .form-container::before,
         .form-container::after {
             content: "";
@@ -89,6 +90,7 @@
             letter-spacing: 2px;
             color: #888;
             margin-bottom: 10px;
+            transition: 0.3s;
         }
 
         input {
@@ -117,6 +119,7 @@
             margin-top: 5px;
             text-transform: uppercase;
             font-weight: bold;
+            letter-spacing: 1px;
             text-shadow: 0 0 5px rgba(255, 62, 62, 0.5);
             animation: flicker 0.5s infinite alternate;
         }
@@ -182,52 +185,60 @@
                 opacity: 1;
             }
         }
+
+        input.error-input {
+            border-left-color: var(--error-red);
+            border-bottom: 1px solid var(--error-red);
+        }
     </style>
 </head>
 
 <body>
 
     <div class="form-container">
-        <h2 th:text="${book.id != null and book.id != ''} ? 'RECONSTRUCT_DATA' : 'INJECT_ARCHIVE'">INJECT_ARCHIVE</h2>
+        <h2 th:text="${pic.id != null and pic.id != ''} ? 'MODIFY_DATA' : 'INJECT_DATA'">INJECT_DATA</h2>
 
-        <form th:action="@{/api/books/addupdate}" th:object="${book}" method="POST" enctype="multipart/form-data">
+        <form th:action="@{/api/pics/addupdate}" th:object="${pic}" method="POST" enctype="multipart/form-data">
 
-            <input type="hidden" th:field="*{id}">
+            <!-- Hidden ID and URL (preserve during update if no new file) -->
+            <input type="hidden" th:field="*{id}" th:if="${pic.id != null and pic.id != ''}">
             <input type="hidden" th:field="*{url}">
+            <input type="hidden" th:field="*{fileSize}">
 
-            <div class="form-group">
-                <label>Data Identifier (Title)</label>
-                <input type="text" th:field="*{title}" placeholder="Identify data node...">
-                <div class="error-msg" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title Error</div>
+            <div class="form-group" th:if="${pic.id == null or pic.id == ''}">
+                <label>Archive ID</label>
+                <input type="text" th:field="*{id}" placeholder="unique_identifier"
+                    th:classappend="${#fields.hasErrors('id')} ? 'error-input' : ''">
+                <div class="error-msg" th:if="${#fields.hasErrors('id')}" th:errors="*{id}">ID Error</div>
             </div>
 
             <div class="form-group">
-                <label>Originator (Author)</label>
-                <input type="text" th:field="*{author}" placeholder="Source origin name...">
-                <div class="error-msg" th:if="${#fields.hasErrors('author')}" th:errors="*{author}">Author Error</div>
-            </div>
-
-            <div class="form-group">
-                <label>Archive Cost (Credits)</label>
-                <input type="number" step="0.01" th:field="*{price}" placeholder="0.00 CR">
-                <div class="error-msg" th:if="${#fields.hasErrors('price')}" th:errors="*{price}">Price Error</div>
-            </div>
-
-            <div class="form-group">
-                <label>Visual Metadata (Choose Link Image)</label>
+                <label>Visual Interface (Choose File)</label>
                 <input type="file" name="imageFile" accept="image/*"
                     style="border-left: 3px solid var(--neon-pink); padding: 8px;">
-
                 <small th:if="*{url != null and url != ''}"
                     style="color: var(--neon-cyan); display: block; margin-top: 5px; font-size: 0.7rem;">
-                    Currently linked: [[*{url}]]
+                    Currently stored: [[*{url}]]
                 </small>
+            </div>
+
+            <div class="form-group" th:if="*{fileSize != null}">
+                <label>Recorded Magnitude (KB)</label>
+                <div style="color: var(--neon-cyan); font-size: 1.2rem; font-weight: bold;" th:text="*{fileSize}">0
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Semantic Label (Alt Text)</label>
+                <input type="text" th:field="*{altText}" placeholder="Visual description..."
+                    th:classappend="${#fields.hasErrors('altText')} ? 'error-input' : ''">
+                <div class="error-msg" th:if="${#fields.hasErrors('altText')}" th:errors="*{altText}">Alt Error</div>
             </div>
 
             <button type="submit" class="btn-submit">Execute Injection</button>
         </form>
 
-        <a th:href="@{/api/books/}" class="btn-back">← Retract to Archive</a>
+        <a th:href="@{/api/pics/}" class="btn-back">← Retract to Archive</a>
     </div>
 
 </body>

@@ -1,5 +1,9 @@
 package com.example.baitap_tuan2.Controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +14,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.baitap_tuan2.Service.BookService;
 import com.example.baitap_tuan2.models.Book;
+
+import org.springframework.validation.BindingResult;
+import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/api/books")
@@ -29,7 +38,8 @@ public class BookController {
     }
 
     @GetMapping("/add-book")
-    public String showAddForm() {
+    public String showAddForm(Model model) {
+        model.addAttribute("book", new Book("", "", "", 0, ""));
         return "addbook";
     }
 
@@ -48,7 +58,7 @@ public class BookController {
             return "redirect:/api/books/";
         }
         model.addAttribute("book", book);
-        return "updatebook";
+        return "addbook";
     }
 
     @GetMapping("/{id}")
@@ -57,14 +67,28 @@ public class BookController {
     }
 
     @PostMapping("/addupdate")
-    public String addOrUpdateBook(@ModelAttribute Book book) {
+    public String addOrUpdateBook(@Valid @ModelAttribute("book") Book book, BindingResult result,
+            @RequestParam("imageFile") MultipartFile imageFile, Model model) {
+        if (result.hasErrors()) {
+            return "addbook";
+        }
+        if (!imageFile.isEmpty()) {
+            try {
+                String fileName = imageFile.getOriginalFilename();
+
+                Path path = Paths.get("src/main/resources/static/images/" + fileName);
+                Files.write(path, imageFile.getBytes());
+                book.setUrl("/images/" + fileName);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         bookService.addBookupdateBook(book);
-
         return "redirect:/api/books/";
     }
 
-    @GetMapping("/delete/{id}") // Đổi sang Get để khớp với thẻ <a>
+    @GetMapping("/delete/{id}")
     public String deleteBook(@PathVariable("id") String id) {
         bookService.deleteBook(id);
         return "redirect:/api/books/";
