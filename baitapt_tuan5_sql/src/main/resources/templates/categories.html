@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Danh mục</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container mt-5">
+        <h2 class="text-primary mb-4">Quản lý Danh mục</h2>
+        <a href="/" class="btn btn-secondary mb-4">← Quay lại Trang chủ</a>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title my-1" id="formTitle">Thêm Danh mục mới</h5>
+            </div>
+            <div class="card-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Tên Danh mục</label>
+                        <input type="text" class="form-control" id="categoryName" placeholder="Nhập tên danh mục..."
+                            required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                    <button type="button" class="btn btn-outline-secondary ms-2" onclick="resetForm()">Hủy</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover table-bordered text-center align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên Danh mục</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoryTableBody">
+                        <tr>
+                            <td colspan="3">Đang tải dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/categories';
+
+        async function fetchCategories() {
+            try {
+                const res = await fetch(API_URL);
+                const categories = await res.json();
+                const tbody = document.getElementById('categoryTableBody');
+                tbody.innerHTML = '';
+
+                if (categories.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3">Chưa có danh mục nào.</td></tr>';
+                    return;
+                }
+
+                categories.forEach(cat => {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>${cat.id}</td>
+                        <td class="text-start">${cat.name}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editCategory(${cat.id}, '${cat.name}')">Sửa</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCategory(${cat.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+                });
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                document.getElementById('categoryTableBody').innerHTML = '<tr><td colspan="3" class="text-danger">Lỗi khi tải dữ liệu!</td></tr>';
+            }
+        }
+
+        document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('categoryId').value;
+            const name = document.getElementById('categoryName').value;
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                if (res.ok) {
+                    resetForm();
+                    fetchCategories();
+                } else {
+                    alert('Có lỗi xảy ra khi lưu danh mục!');
+                }
+            } catch (error) {
+                console.error('Error saving category:', error);
+                alert('Có lỗi xảy ra!');
+            }
+        });
+
+        function editCategory(id, name) {
+            document.getElementById('categoryId').value = id;
+            document.getElementById('categoryName').value = name;
+            document.getElementById('formTitle').innerText = 'Cập nhật Danh mục';
+        }
+
+        function resetForm() {
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryId').value = '';
+            document.getElementById('formTitle').innerText = 'Thêm Danh mục mới';
+        }
+
+        async function deleteCategory(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
+                try {
+                    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        fetchCategories();
+                    } else {
+                        alert('Lỗi khi xóa danh mục (Có thể do ràng buộc dữ liệu)');
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi xóa:', error);
+                }
+            }
+        }
+
+        fetchCategories();
+    </script>
+</body>
+
+</html>
