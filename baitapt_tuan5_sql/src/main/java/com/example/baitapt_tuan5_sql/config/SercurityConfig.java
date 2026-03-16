@@ -22,15 +22,12 @@ public class SercurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // Phân quyền cho CategoryController
                 .requestMatchers(HttpMethod.GET, "/api/categories/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/api/categories/**").hasRole("ADMIN")
                 
-                // Phân quyền cho ProductController
                 .requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/api/products/**").hasRole("ADMIN")
                 
-                // Phân quyền cho Giao diện (UI)
                 .requestMatchers("/categories-ui/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/products-ui/**").hasAnyRole("USER", "ADMIN")
                 

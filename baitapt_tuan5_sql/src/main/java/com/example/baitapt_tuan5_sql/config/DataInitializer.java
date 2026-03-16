@@ -30,7 +30,7 @@ public class DataInitializer {
             if (accountRepository.findByUsername("admin").isEmpty()) {
                 Account admin = new Account();
                 admin.setUsername("admin");
-                admin.setPassword(passwordEncoder.encode("admin")); // Mật khẩu là admin
+                admin.setPassword(passwordEncoder.encode("admin")); 
                 admin.setRoles(Set.of(adminRole));
                 accountRepository.save(admin);
             }
@@ -39,7 +39,7 @@ public class DataInitializer {
             if (accountRepository.findByUsername("user").isEmpty()) {
                 Account user = new Account();
                 user.setUsername("user");
-                user.setPassword(passwordEncoder.encode("123456")); // Mật khẩu là 123456
+                user.setPassword(passwordEncoder.encode("123456")); 
                 user.setRoles(Set.of(userRole));
                 accountRepository.save(user);
             }
