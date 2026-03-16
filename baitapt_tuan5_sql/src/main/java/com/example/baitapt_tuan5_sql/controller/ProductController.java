@@ -15,8 +15,6 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    public static String UPLOAD_DIRECTORY = System.getProperty("user.dir") + "/uploads";
-
     @GetMapping
     public List<product> getAllProducts() {
         return productService.findAll();
@@ -30,49 +28,17 @@ public class ProductController {
     }
 
     @PostMapping
-    public product createProduct(@RequestParam("name") String name,
-            @RequestParam("price") Double price,
-            @RequestParam(value = "file", required = false) org.springframework.web.multipart.MultipartFile file)
-            throws java.io.IOException {
-        product p = new product();
-        p.setName(name);
-        p.setPrice(price);
-        if (file != null && !file.isEmpty()) {
-            java.nio.file.Path uploadPath = java.nio.file.Paths.get(UPLOAD_DIRECTORY);
-            if (!java.nio.file.Files.exists(uploadPath)) {
-                java.nio.file.Files.createDirectories(uploadPath);
-            }
-            String fileName = java.util.UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            java.nio.file.Path filePath = uploadPath.resolve(fileName);
-            java.nio.file.Files.write(filePath, file.getBytes());
-            p.setPath("/images/" + fileName);
-        }
+    public product createProduct(@RequestBody product p) {
         return productService.save(p);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<product> updateProduct(@PathVariable Long id,
-            @RequestParam("name") String name,
-            @RequestParam("price") Double price,
-            @RequestParam(value = "file", required = false) org.springframework.web.multipart.MultipartFile file) {
+    public ResponseEntity<product> updateProduct(@PathVariable Long id, @RequestBody product productDetails) {
         return productService.findById(id)
                 .map(existingProduct -> {
-                    existingProduct.setName(name);
-                    existingProduct.setPrice(price);
-                    if (file != null && !file.isEmpty()) {
-                        try {
-                            java.nio.file.Path uploadPath = java.nio.file.Paths.get(UPLOAD_DIRECTORY);
-                            if (!java.nio.file.Files.exists(uploadPath)) {
-                                java.nio.file.Files.createDirectories(uploadPath);
-                            }
-                            String fileName = java.util.UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                            java.nio.file.Path filePath = uploadPath.resolve(fileName);
-                            java.nio.file.Files.write(filePath, file.getBytes());
-                            existingProduct.setPath("/images/" + fileName);
-                        } catch (java.io.IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
+                    existingProduct.setName(productDetails.getName());
+                    existingProduct.setPrice(productDetails.getPrice());
+                    existingProduct.setPath(productDetails.getPath());
                     product updatedProduct = productService.save(existingProduct);
                     return ResponseEntity.ok(updatedProduct);
                 })
