@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Admin CMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .sidebar-nav li.nav-home a { background-color: #f1f5f9; color: var(--primary-color); font-weight: 600; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .dashboard-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            background: #eef2ff;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+
+        .dashboard-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .dashboard-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            background: #f1f5f9;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+        }
+
+        .welcome-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem;
+            border-radius: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-section h1 { margin: 0; font-size: 2.5rem; }
+        .welcome-section p { opacity: 0.9; margin-top: 0.5rem; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{layout/header :: header('home')}"></div>
+
+    <main>
+        <div class="welcome-section">
+            <h1 id="welcomeText">Welcome Back, <span sec:authentication="name">User</span>!</h1>
+            <p>Your store management system is ready.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <a th:href="@{/category-ui/}" class="dashboard-card">
+                <div class="icon-box">📂</div>
+                <h3>Catalog Manager</h3>
+                <p>Organize your products into efficient categories and taxonomies.</p>
+                <span class="btn btn-outline">Go to Categories</span>
+            </a>
+
+            <a th:href="@{/products-ui/}" class="dashboard-card">
+                <div class="icon-box">📦</div>
+                <h3>Inventory Manager</h3>
+                <p>Add, update, and track your product listings and details.</p>
+                <span class="btn btn-outline">Go to Products</span>
+            </a>
+        </div>
+
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+    </main>
+
+    <script>
+        // Simple micro-animation on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.dashboard-card');
+            cards.forEach((card, idx) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100 * idx);
+            });
+        });
+    </script>
+</body>
+</html>
