@@ -203,11 +203,28 @@
             // Logic tìm kiếm và lọc học phần
             const searchInput = document.getElementById('searchInput');
             const creditFilter = document.getElementById('creditFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
             const resetFilterBtn = document.getElementById('resetFilterBtn');
+
+            if (categoryFilter) {
+                const categories = new Set();
+                cards.forEach(card => {
+                    const catElement = card.querySelector('.course-category');
+                    if (catElement) categories.add(catElement.textContent.trim());
+                });
+                
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    categoryFilter.appendChild(option);
+                });
+            }
 
             function filterCourses() {
                 const keyword = searchInput ? searchInput.value.toLowerCase() : '';
                 const credit = creditFilter ? creditFilter.value : 'all';
+                const category = categoryFilter ? categoryFilter.value : 'all';
 
                 cards.forEach(card => {
                     const titleElement = card.querySelector('.course-title');
@@ -216,10 +233,14 @@
                     const creditElement = card.querySelector('.course-info:nth-of-type(2) span:last-child');
                     const creditText = creditElement ? creditElement.textContent : '';
                     
+                    const catElement = card.querySelector('.course-category');
+                    const catText = catElement ? catElement.textContent.trim() : '';
+                    
                     const matchesSearch = title.includes(keyword);
                     const matchesCredit = (credit === 'all') || creditText.includes(credit + ' Tín chỉ');
+                    const matchesCategory = (category === 'all') || (catText === category);
 
-                    if (matchesSearch && matchesCredit) {
+                    if (matchesSearch && matchesCredit && matchesCategory) {
                         card.style.display = 'flex';
                     } else {
                         card.style.display = 'none';
@@ -229,11 +250,13 @@
 
             if (searchInput) searchInput.addEventListener('input', filterCourses);
             if (creditFilter) creditFilter.addEventListener('change', filterCourses);
+            if (categoryFilter) categoryFilter.addEventListener('change', filterCourses);
             
             if (resetFilterBtn) {
                 resetFilterBtn.addEventListener('click', () => {
                     if (searchInput) searchInput.value = '';
                     if (creditFilter) creditFilter.value = 'all';
+                    if (categoryFilter) categoryFilter.value = 'all';
                     filterCourses();
                 });
             }

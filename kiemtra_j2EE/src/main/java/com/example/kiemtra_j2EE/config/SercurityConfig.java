@@ -31,12 +31,12 @@ public class SercurityConfig {
                         
                         // Cấu hình cho Enrollment
                         .requestMatchers(HttpMethod.GET, "/api/enrollment/**").hasAnyRole("STUDENT", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/enrollment/").hasAnyRole("STUDENT", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/enrollment/").hasAnyRole("STUDENT")
                         .requestMatchers("/api/enrollment/**").hasRole("ADMIN")
                     
                         // Cấu hình cho UI
-                        .requestMatchers("/ui/course/**").hasAnyRole("STUDENT", "ADMIN")
-                        .requestMatchers("/ui/enrollment/**").hasAnyRole("STUDENT", "ADMIN")
+                        .requestMatchers("/ui/course/**").hasAnyRole( "ADMIN")
+                        .requestMatchers("/ui/enrollment/**").hasAnyRole("STUDENT")
                         
                         .anyRequest().authenticated())
                 .formLogin(form -> form
