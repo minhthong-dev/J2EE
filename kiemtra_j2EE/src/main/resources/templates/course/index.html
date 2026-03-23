@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Học Phần</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; display: flex; margin: 0; }
+        .admin-page-content { padding: 2rem; flex-grow: 1; min-height: 100vh; }
+        
+        /* Card Style */
+        .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .course-card { 
+            background: white; border-radius: 1rem; overflow: hidden; 
+            border: 1px solid #e2e8f0; transition: 0.3s; display: flex; flex-direction: column;
+        }
+        .course-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .course-img { width: 100%; height: 180px; object-fit: cover; }
+        .course-body { padding: 1.25rem; flex-grow: 1; }
+        .course-cat { font-size: 0.75rem; font-weight: 700; color: #6366f1; text-transform: uppercase; margin-bottom: 0.5rem; display: block; }
+        .course-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; color: #1e293b; }
+        .course-info { font-size: 0.875rem; color: #64748b; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 8px; }
+
+        /* Form Style */
+        .admin-controls { background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; margin-bottom: 2rem; }
+        .welcome-hero { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; padding: 2.5rem; border-radius: 1.5rem; margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{layout/header :: header('course')}"></div>
+
+    <div class="admin-page-content">
+        <div class="welcome-hero">
+            <h1>Quản Lý Học Phần</h1>
+            <p>Admin Dashboard - Hệ thống quản lý dữ liệu đào tạo</p>
+        </div>
+
+        <div class="admin-controls">
+            <h5 class="mb-3 fw-bold">Thêm học phần mới</h5>
+            <div class="row g-3">
+                <div class="col-md-4"><input type="text" id="addName" class="form-control" placeholder="Tên học phần"></div>
+                <div class="col-md-3"><input type="text" id="addLecture" class="form-control" placeholder="Giảng viên"></div>
+                <div class="col-md-2"><input type="number" id="addCredits" class="form-control" placeholder="Tín chỉ"></div>
+                <div class="col-md-3">
+                    <select id="addCategory" class="form-select">
+                        <option value="">-- Chọn danh mục --</option>
+                    </select>
+                </div>
+                <div class="col-md-9"><input type="text" id="addUrl" class="form-control" placeholder="Link ảnh minh họa (URL)"></div>
+                <div class="col-md-3"><button class="btn btn-primary w-100 fw-bold" onclick="addCourse()">+ THÊM MỚI</button></div>
+            </div>
+        </div>
+
+        <div class="course-grid" id="courseGrid"></div>
+
+        <div class="modal fade" id="editModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" style="border-radius: 1rem;">
+                    <div class="modal-header">
+                        <h5 class="fw-bold">Chỉnh sửa học phần</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <input type="hidden" id="editId">
+                        <div class="col-md-6"><label class="small fw-bold">Tên học phần</label><input type="text" id="editName" class="form-control"></div>
+                        <div class="col-md-6"><label class="small fw-bold">Giảng viên</label><input type="text" id="editLecture" class="form-control"></div>
+                        <div class="col-md-4"><label class="small fw-bold">Số tín chỉ</label><input type="number" id="editCredits" class="form-control"></div>
+                        <div class="col-md-8"><label class="small fw-bold">Danh mục</label><select id="editCategory" class="form-select"></select></div>
+                        <div class="col-md-12"><label class="small fw-bold">URL Ảnh</label><input type="text" id="editUrl" class="form-control"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                        <button class="btn btn-primary px-4" onclick="updateCourse()">Lưu thay đổi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_COURSE = '/api/course/';
+        const API_CATEGORY = '/api/category/';
+        let editModal;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            loadCategories();
+            loadCourses();
+        });
+
+        // 1. Load danh mục đổ vào các thẻ Select
+        async function loadCategories() {
+            try {
+                const res = await fetch(API_CATEGORY);
+                const categories = await res.json();
+                let html = '<option value="">-- Chọn danh mục --</option>';
+                categories.forEach(c => html += `<option value="${c.id}">${c.name}</option>`);
+                document.getElementById('addCategory').innerHTML = html;
+                document.getElementById('editCategory').innerHTML = html;
+            } catch (e) { console.error("Lỗi load category", e); }
+        }
+
+        // 2. Load danh sách Course
+        async function loadCourses() {
+            const res = await fetch(API_COURSE);
+            const result = await res.json();
+            const grid = document.getElementById('courseGrid');
+            grid.innerHTML = '';
+
+            result.data.forEach(c => {
+                grid.innerHTML += `
+                    <div class="course-card">
+                        <img src="${c.urlImage || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3'}" class="course-img" onerror="this.src='https://via.placeholder.com/400x200'">
+                        <div class="course-body">
+                            <span class="course-cat">${c.category ? c.category.name : 'CHUNG'}</span>
+                            <h3 class="course-title">${c.name}</h3>
+                            <div class="course-info"><span>👨‍🏫</span> ${c.lecture || 'Chưa cập nhật'}</div>
+                            <div class="course-info"><span>📖</span> ${c.credits} Tín chỉ</div>
+                        </div>
+                        <div class="p-3 pt-0 d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm flex-grow-1 fw-bold" onclick='openEdit(${JSON.stringify(c)})'>SỬA</button>
+                            <button class="btn btn-outline-danger btn-sm flex-grow-1 fw-bold" onclick="deleteCourse(${c.id})">XÓA</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 3. Thêm mới
+        async function addCourse() {
+            const data = {
+                name: document.getElementById('addName').value,
+                lecture: document.getElementById('addLecture').value,
+                credits: parseFloat(document.getElementById('addCredits').value),
+                urlImage: document.getElementById('addUrl').value,
+                category: { id: document.getElementById('addCategory').value }
+            };
+            await fetch(API_COURSE, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            location.reload();
+        }
+
+        // 4. Mở modal sửa
+        function openEdit(course) {
+            document.getElementById('editId').value = course.id;
+            document.getElementById('editName').value = course.name;
+            document.getElementById('editLecture').value = course.lecture;
+            document.getElementById('editCredits').value = course.credits;
+            document.getElementById('editUrl').value = course.urlImage;
+            document.getElementById('editCategory').value = course.category ? course.category.id : "";
+            editModal.show();
+        }
+
+        // 5. Cập nhật
+        async function updateCourse() {
+            const id = document.getElementById('editId').value;
+            const data = {
+                id: id,
+                name: document.getElementById('editName').value,
+                lecture: document.getElementById('editLecture').value,
+                credits: parseFloat(document.getElementById('editCredits').value),
+                urlImage: document.getElementById('editUrl').value,
+                category: { id: document.getElementById('editCategory').value }
+            };
+            await fetch(API_COURSE + id, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            editModal.hide();
+            loadCourses();
+        }
+
+        // 6. Xóa
+        async function deleteCourse(id) {
+            if(confirm('Bạn có chắc muốn xóa học phần này?')) {
+                await fetch(API_COURSE + id, { method: 'DELETE' });
+                loadCourses();
+            }
+        }
+    </script>
+</body>
+</html>

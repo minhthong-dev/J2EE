@@ -2,24 +2,35 @@ package com.example.kiemtra_j2EE.controller;
 
 // import com.example.kiemtra_j2EE.models.product;
 // import com.example.kiemtra_j2EE.service.ProductService;
+import com.example.kiemtra_j2EE.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
-import java.util.*;
 
 @Controller
 public class IndexController {
+    @Autowired
+    private CourseRepository courseRepository;
+
     @GetMapping("/")
-    public String index() {
+    public String index(Model model) {
+        model.addAttribute("courses", courseRepository.findAll());
         return "home/index";
     }
 
     @GetMapping("/hello")
     public String home() {
-        // Map<String, String> map = new HashMap<>();
-        // map.put("message", "m da dang nhap thanh cong");
-        // return ResponseEntity.ok(map);
         return "home/index";
+    }
+
+    @GetMapping("/login")
+    public String login() {
+        return "home/login";
+    }
+
+    @GetMapping("/register")
+    public String register() {
+        return "home/register";
     }
 }

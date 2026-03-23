@@ -1,27 +1,61 @@
 <aside class="sidebar" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="header(activeTab)">
-    <h2>Admin Panel</h2>
+    <h2>Hệ Thống ĐKHP</h2>
     
     <!-- User Profile Section -->
     <div style="background: #f8fafc; padding: 1rem; border-radius: 0.75rem; margin-bottom: 2rem; border: 1px solid var(--border-color);">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             <div style="width: 40px; height: 40px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">
-                <span th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}">U</span>
+                <span th:text="${#authentication.name != null ? #strings.substring(#authentication.name,0,1).toUpperCase() : 'U'}">U</span>
             </div>
             <div>
                 <div style="font-size: 0.875rem; font-weight: 700;" sec:authentication="name">User</div>
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Administrator</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                    <span sec:authorize="hasRole('ADMIN')">Quản trị viên</span>
+                    <span sec:authorize="hasRole('USER')">Sinh viên</span>
+                </div>
             </div>
         </div>
     </div>
 
     <ul class="sidebar-nav">
-        <li th:class="${activeTab == 'home' ? 'nav-home' : ''}"><a th:href="@{/}">Dashboard</a></li>
-        <li th:class="${activeTab == 'category' ? 'nav-category' : ''}"><a th:href="@{/category-ui/}">Categories</a></li>
-        <li th:class="${activeTab == 'product' ? 'nav-product' : ''}"><a th:href="@{/products-ui/}">Products</a></li>
-        <li style="margin-top: 2rem;">
+        <li sec:authorize="hasRole('STUDENT')" th:class="${activeTab == 'home' ? 'nav-home active' : ''}"><a th:href="@{/}">🏠 Đăng ký học phần</a></li>
+        
+        <!-- Menu cho Sinh viên -->
+        <li sec:authorize="hasRole('STUDENT')" th:class="${activeTab == 'my-enrollments' ? 'active' : ''}">
+            <a th:href="@{/ui/enrollment/}">📚 Học phần đã đăng ký</a>
+        </li>
+
+        <!-- Menu cho Admin -->
+        <li sec:authorize="hasRole('ADMIN')" th:class="${activeTab == 'course-manage' ? 'active' : ''}">
+            <a th:href="@{/ui/course/}">⚙️ Quản lý học phần</a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')" th:class="${activeTab == 'category' ? 'active' : ''}">
+            <a th:href="@{/category-ui/}">📂 Quản lý danh mục</a>
+        </li>
+        
+        <!-- Phần Tìm kiếm & Lọc (Chỉ hiển thị ở trang chủ) -->
+        <li style="margin: 1.5rem 0 1rem 0; padding-top: 1rem; border-top: 1px solid var(--border-color);" th:if="${activeTab == 'home'}">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;">Tìm kiếm & Lọc</div>
+            <input type="text" id="searchInput" placeholder="Tìm tên học phần..." 
+                   style="width: 100%; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border-color); margin-bottom: 0.75rem; font-family: inherit; font-size: 0.875rem;">
+            
+            <select id="creditFilter" style="width: 100%; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
+                <option value="all">Tất cả tín chỉ</option>
+                <option value="1">1 Tín chỉ</option>
+                <option value="2">2 Tín chỉ</option>
+                <option value="3">3 Tín chỉ</option>
+                <option value="4">4 Tín chỉ</option>
+            </select>
+            
+            <button id="resetFilterBtn" class="btn btn-outline" style="width: 100%; margin-top: 0.75rem; padding: 0.5rem; font-size: 0.875rem; justify-content: center;">
+                Đặt lại
+            </button>
+        </li>
+
+        <li style="margin-top: auto;">
             <form th:action="@{/logout}" method="post">
-                <button type="submit" class="btn btn-outline" style="color: var(--danger); border-color: #fee2e2; width: 100%; justify-content: flex-start;">
-                    Logout
+                <button type="submit" class="btn btn-outline" style="color: var(--danger); border-color: #fee2e2; width: 100%; justify-content: flex-start; gap: 0.5rem;">
+                    <span>🚪</span> Đăng xuất
                 </button>
             </form>
         </li>

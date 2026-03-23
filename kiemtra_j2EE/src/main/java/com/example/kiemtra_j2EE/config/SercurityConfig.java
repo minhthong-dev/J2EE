@@ -21,20 +21,26 @@ public class SercurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .httpBasic(Customizer.withDefaults())// de test postman
+                .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/category/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/category/**").hasRole("ADMIN")
-
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/products/**").hasRole("ADMIN")
-
-                        .requestMatchers("/category-ui/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/products-ui/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/").authenticated()
-
+                        .requestMatchers("/", "/login", "/register", "/api/accounts/register", "/css/**", "/js/**", "/images/**").permitAll()
+                        
+                        // Cấu hình cho Course
+                        .requestMatchers(HttpMethod.GET, "/api/course/**").hasAnyRole("STUDENT", "ADMIN")
+                        .requestMatchers("/api/course/**").hasRole("ADMIN")
+                        
+                        // Cấu hình cho Enrollment
+                        .requestMatchers(HttpMethod.GET, "/api/enrollment/**").hasAnyRole("STUDENT", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/enrollment/").hasAnyRole("STUDENT", "ADMIN")
+                        .requestMatchers("/api/enrollment/**").hasRole("ADMIN")
+                    
+                        // Cấu hình cho UI
+                        .requestMatchers("/ui/course/**").hasAnyRole("STUDENT", "ADMIN")
+                        .requestMatchers("/ui/enrollment/**").hasAnyRole("STUDENT", "ADMIN")
+                        
                         .anyRequest().authenticated())
                 .formLogin(form -> form
+                        .loginPage("/login")
                         .defaultSuccessUrl("/", true)
                         .permitAll())
                 .logout(logout -> logout.permitAll());

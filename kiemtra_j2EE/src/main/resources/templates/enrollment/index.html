@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Học Phần Đã Đăng Ký - Hệ Thống ĐKHP</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .course-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .course-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .course-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .course-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .course-info {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #dcfce7;
+            color: #166534;
+            margin-bottom: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{layout/header :: header('my-enrollments')}"></div>
+
+    <main>
+        <div class="section-header">
+            <h2>Học Phần Đã Đăng Ký</h2>
+            <p>Chào <span sec:authentication="name">Bạn</span>! Đây là danh sách các học phần bạn đã chọn.</p>
+        </div>
+
+        <div th:if="${#lists.isEmpty(enrollments)}" style="text-align: center; padding: 4rem; background: white; border-radius: 1rem; margin-top: 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+            <h3>Bạn chưa đăng ký học phần nào.</h3>
+            <p style="color: var(--text-muted);">Hãy quay lại trang chủ và bắt đầu đăng ký!</p>
+            <a th:href="@{/}" class="btn btn-primary" style="margin-top: 1rem;">Quay Lại Trang Chủ</a>
+        </div>
+
+        <div class="course-grid">
+            <div th:each="enrollment : ${enrollments}" class="course-card">
+                <img th:src="${enrollment.course.urlImage}" alt="Course Image" class="course-image" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60'">
+                <div class="course-content">
+                    <span class="status-badge">Đã đăng ký</span>
+                    <h3 class="course-title" th:text="${enrollment.course.name}">Tên học phần</h3>
+                    <div class="course-info">
+                        <span>👨‍🏫</span> <span th:text="${enrollment.course.lecture}">Giảng viên</span>
+                    </div>
+                    <div class="course-info">
+                        <span>📖</span> <span th:text="${enrollment.course.credits + ' Tín chỉ'}">4 Tín chỉ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+    </main>
+</body>
+</html>

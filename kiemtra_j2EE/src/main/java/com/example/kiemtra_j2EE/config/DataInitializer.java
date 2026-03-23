@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.example.kiemtra_j2EE.repository.AccountRepository;
 import com.example.kiemtra_j2EE.repository.RoleRepository;
 import com.example.kiemtra_j2EE.models.Account;
@@ -14,7 +15,9 @@ import com.example.kiemtra_j2EE.models.Role;
 import com.example.kiemtra_j2EE.models.Product;
 import com.example.kiemtra_j2EE.repository.ProductRepository;
 import com.example.kiemtra_j2EE.repository.CategoryRepository;
+import com.example.kiemtra_j2EE.repository.CourseRepository;
 import com.example.kiemtra_j2EE.models.Category;
+import com.example.kiemtra_j2EE.models.Course;
 
 @Configuration
 public class DataInitializer {
@@ -23,6 +26,7 @@ public class DataInitializer {
             RoleRepository roleRepository,
             CategoryRepository categoryRepository,
             ProductRepository productRepository,
+            CourseRepository courseRepository,
             PasswordEncoder passwordEncoder) {
         return args -> {
 
@@ -33,6 +37,16 @@ public class DataInitializer {
                 categoryRepository.save(category);
             }
 
+            // khoi tao du lieu course
+             if (courseRepository.findByName("Triet Hoc Mac-LeNin").isEmpty()) {
+                Course course = new Course();
+                course.setName("Triet Hoc Mac-LeNin");
+                course.setCredits(200.0);
+                course.setLecture("Nguyen Van A");
+                course.setUrlImage("chua co");
+                course.setCategory(categoryRepository.findByName("Dai Cuong").get());
+                courseRepository.save(course);
+            }
             // khoi tao du lieu products
 
             if (productRepository.findByName("Product 1").isEmpty()) {
@@ -45,14 +59,29 @@ public class DataInitializer {
 
             // khoi toi du lieu user
             Role adminRole = roleRepository.findByName("ADMIN")
-                    .orElseGet(() -> roleRepository.save(new Role(null, "ADMIN")));
+                    .orElseGet(() -> {
+                        Role r = new Role();
+                        r.setName("ADMIN");
+                        return roleRepository.save(r);
+                    });
             Role userRole = roleRepository.findByName("USER")
-                    .orElseGet(() -> roleRepository.save(new Role(null, "USER")));
+                    .orElseGet(() -> {
+                        Role r = new Role();
+                        r.setName("USER");
+                        return roleRepository.save(r);
+                    });
+            Role studentRole = roleRepository.findByName("STUDENT")
+                    .orElseGet(() -> {
+                        Role r = new Role();
+                        r.setName("STUDENT");
+                        return roleRepository.save(r);
+                    });
 
             if (accountRepository.findByUsername("admin").isEmpty()) {
                 Account admin = new Account();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder.encode("admin"));
+                admin.setEmail("admin@example.com");
                 admin.setRoles(Set.of(adminRole));
                 accountRepository.save(admin);
             }
@@ -61,6 +90,7 @@ public class DataInitializer {
                 Account user = new Account();
                 user.setUsername("user");
                 user.setPassword(passwordEncoder.encode("123456"));
+                user.setEmail("user@example.com");
                 user.setRoles(Set.of(userRole));
                 accountRepository.save(user);
             }

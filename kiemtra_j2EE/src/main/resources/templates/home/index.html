@@ -1,133 +1,242 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Admin CMS</title>
+    <title>Trang Chủ - Hệ Thống Đăng Ký Học Phần</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .sidebar-nav li.nav-home a { background-color: #f1f5f9; color: var(--primary-color); font-weight: 600; }
-        
-        .dashboard-grid {
+        .course-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
             margin-top: 2rem;
         }
 
-        .dashboard-card {
+        .course-card {
             background: var(--card-bg);
             backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
-            border-radius: 1.25rem;
-            padding: 2.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
 
-        .dashboard-card:hover {
+        .course-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
             border-color: var(--primary-color);
         }
 
-        .icon-box {
-            width: 80px;
-            height: 80px;
-            background: #eef2ff;
-            border-radius: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            font-size: 2.5rem;
-            color: var(--primary-color);
+        .course-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .dashboard-card h3 {
-            font-size: 1.5rem;
+        .course-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-category {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-title {
+            font-size: 1.25rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
+            color: var(--text-main);
         }
 
-        .dashboard-card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .stats {
+        .course-info {
             font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            background: #f1f5f9;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .welcome-section {
+        .course-footer {
+            margin-top: auto;
+            padding-top: 1.5rem;
+        }
+
+        .welcome-hero {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 3rem;
+            padding: 4rem 3rem;
             border-radius: 1.5rem;
             margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .welcome-section h1 { margin: 0; font-size: 2.5rem; }
-        .welcome-section p { opacity: 0.9; margin-top: 0.5rem; font-size: 1.1rem; }
+        .welcome-hero::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .welcome-hero h1 { margin: 0; font-size: 2.75rem; font-weight: 800; border: none;}
+        .welcome-hero p { opacity: 0.95; margin-top: 0.75rem; font-size: 1.125rem; }
+
+        .btn-register {
+            width: 100%;
+            justify-content: center;
+            padding: 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            transition: background 0.2s;
+        }
+
+        .btn-register:hover {
+            background: var(--secondary-color);
+        }
     </style>
 </head>
 <body>
     <div th:replace="~{layout/header :: header('home')}"></div>
 
     <main>
-        <div class="welcome-section">
-            <h1 id="welcomeText">Welcome Back, <span sec:authentication="name">User</span>!</h1>
-            <p>Your store management system is ready.</p>
+        <div class="welcome-hero">
+            <h1>Xin chào, <span sec:authentication="name" th:if="${#authorization.expression('isAuthenticated()')}">Bạn</span>!</h1>
+            <p>Khám phá và đăng ký các học phần mới nhất để nâng cao kiến thức của bạn.</p>
         </div>
 
-        <div class="dashboard-grid">
-            <a th:href="@{/category-ui/}" class="dashboard-card">
-                <div class="icon-box">📂</div>
-                <h3>Catalog Manager</h3>
-                <p>Organize your products into efficient categories and taxonomies.</p>
-                <span class="btn btn-outline">Go to Categories</span>
-            </a>
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Danh Sách Học Phần</h2>
+            <div sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/ui/course/manage}" class="btn btn-primary">Quản Lý Học Phần</a>
+            </div>
+        </div>
 
-            <a th:href="@{/products-ui/}" class="dashboard-card">
-                <div class="icon-box">📦</div>
-                <h3>Inventory Manager</h3>
-                <p>Add, update, and track your product listings and details.</p>
-                <span class="btn btn-outline">Go to Products</span>
-            </a>
+        <div class="course-grid">
+            <div th:each="course : ${courses}" class="course-card">
+                <img th:src="${course.urlImage}" alt="Course Image" class="course-image" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60'">
+                <div class="course-content">
+                    <div class="course-category" th:text="${course.category != null ? course.category.name : 'Chung'}">IT</div>
+                    <h3 class="course-title" th:text="${course.name}">Tên học phần</h3>
+                    <div class="course-info">
+                        <span>👨‍🏫</span> <span th:text="${course.lecture}">Giảng viên</span>
+                    </div>
+                    <div class="course-info">
+                        <span>📖</span> <span th:text="${course.credits + ' Tín chỉ'}">4 Tín chỉ</span>
+                    </div>
+                </div>
+                <div class="course-footer" style="padding: 1.5rem; padding-top: 0;">
+                    <a href="javascript:void(0)" 
+                       th:onclick="'enrollCourse(' + ${course.id} + ')'" 
+                       class="btn-register"
+                       sec:authorize="hasRole('STUDENT')">
+                        Đăng Ký Ngay
+                    </a>
+                </div>
+            </div>
         </div>
 
         <footer th:replace="~{layout/footer :: footer}"></footer>
     </main>
 
-    <script>
-        // Simple micro-animation on load
+    <script th:inline="javascript">
+        async function enrollCourse(courseId) {
+            try {
+                // Giả sử modal register và lấy thông tin user từ context
+                const response = await fetch('/api/enrollment/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        course: { id: courseId },
+                        // Account sẽ được backend xử lý lấy từ Principal
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Đăng ký học phần thành công!');
+                } else {
+                    const error = await response.json();
+                    alert('Lỗi: ' + (error.message || 'Không thể đăng ký'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Có lỗi xảy ra khi kết nối');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.dashboard-card');
+            const cards = document.querySelectorAll('.course-card');
             cards.forEach((card, idx) => {
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(20px)';
                 setTimeout(() => {
-                    card.style.transition = 'all 0.5s ease';
+                    card.style.transition = 'all 0.4s ease-out';
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
                 }, 100 * idx);
             });
+
+            // Logic tìm kiếm và lọc học phần
+            const searchInput = document.getElementById('searchInput');
+            const creditFilter = document.getElementById('creditFilter');
+            const resetFilterBtn = document.getElementById('resetFilterBtn');
+
+            function filterCourses() {
+                const keyword = searchInput ? searchInput.value.toLowerCase() : '';
+                const credit = creditFilter ? creditFilter.value : 'all';
+
+                cards.forEach(card => {
+                    const titleElement = card.querySelector('.course-title');
+                    const title = titleElement ? titleElement.textContent.toLowerCase() : '';
+                    
+                    const creditElement = card.querySelector('.course-info:nth-of-type(2) span:last-child');
+                    const creditText = creditElement ? creditElement.textContent : '';
+                    
+                    const matchesSearch = title.includes(keyword);
+                    const matchesCredit = (credit === 'all') || creditText.includes(credit + ' Tín chỉ');
+
+                    if (matchesSearch && matchesCredit) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            if (searchInput) searchInput.addEventListener('input', filterCourses);
+            if (creditFilter) creditFilter.addEventListener('change', filterCourses);
+            
+            if (resetFilterBtn) {
+                resetFilterBtn.addEventListener('click', () => {
+                    if (searchInput) searchInput.value = '';
+                    if (creditFilter) creditFilter.value = 'all';
+                    filterCourses();
+                });
+            }
         });
     </script>
 </body>
