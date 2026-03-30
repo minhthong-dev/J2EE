@@ -13,9 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SercurityConfig {
 
-    public SercurityConfig() {
-    }
-
+    public SercurityConfig() {}
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -28,8 +26,11 @@ public class SercurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/api/products/**").hasRole("ADMIN")
                 
+                .requestMatchers("/api/cart/**").hasAnyRole("USER", "ADMIN")
+                
+                .requestMatchers("/products").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/cart").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/categories-ui/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/products-ui/**").hasAnyRole("USER", "ADMIN")
                 
                 .anyRequest().authenticated()
             )

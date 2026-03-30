@@ -1,5 +1,7 @@
 package com.example.baitapt_tuan5_sql.models;
 
+import  com.example.baitapt_tuan5_sql.models.category;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,16 +26,21 @@ public class product {
     @Column(name = "`hinh anh san pham`")
     private String path;
 
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.EAGER)
+    @jakarta.persistence.JoinColumn(name = "`category_id`", nullable = false)
+    private category category;
+
     @Transient
     private Double discountedPrice;
 
     public product() {
     }
 
-    public product(String name, Double price, String path) {
+    public product(String name, Double price, String path, category category) {
         this.name = name;
         this.price = price;
         this.path = path;
+        this.category = category;
     }
 
     public Long getId() {
@@ -74,5 +81,11 @@ public class product {
 
     public void setDiscountedPrice(Double discountedPrice) {
         this.discountedPrice = discountedPrice;
+    }
+    public category getCategory(){
+        return category;
+    }
+    public void setCategory(category category){
+        this.category = category;
     }
 }

@@ -11,9 +11,14 @@ public class UIController {
         return "index";
     }
 
-    @GetMapping("/products-ui")
+    @GetMapping("/products")
     public String productsPage() {
         return "products";
+    }
+
+    @GetMapping("/cart")
+    public String cartPage() {
+        return "cart";
     }
 
     @GetMapping("/categories-ui")

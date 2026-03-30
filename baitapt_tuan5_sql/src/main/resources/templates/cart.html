@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Giỏ hàng của bạn</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-success"><i class="bi bi-cart3"></i> Giỏ hàng của bạn</h2>
+            <a href="/products" class="btn btn-outline-secondary">← Tiếp tục mua sắm</a>
+        </div>
+
+        <div id="cartContent" class="row">
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Giá</th>
+                                    <th>Số lượng</th>
+                                    <th>Tổng cộng</th>
+                                    <th>Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartItemsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 bg-white">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Tổng giá trị đơn hàng</h5>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Tạm tính</span>
+                            <strong id="subtotal">0 VNĐ</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="fw-bold">Tổng cộng</span>
+                            <h4 class="text-success" id="total">0 VNĐ</h4>
+                        </div>
+                        <button class="btn btn-primary w-100 btn-lg" onclick="checkout()">Đặt hàng ngay</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="emptyCart" class="text-center py-5 d-none">
+            <i class="bi bi-cart-x text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-4">Giỏ hàng của bạn đang trống</h4>
+            <a href="/products" class="btn btn-primary mt-3">Quay lại mua sắm</a>
+        </div>
+    </div>
+
+    <script>
+        const CART_API_URL = '/api/cart';
+
+        async function fetchCart() {
+            const res = await fetch(CART_API_URL);
+            const items = await res.json();
+            
+            if (!items.length) {
+                document.getElementById('cartContent').classList.add('d-none');
+                document.getElementById('emptyCart').classList.remove('d-none');
+                return;
+            }
+
+            const tbody = document.getElementById('cartItemsBody');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            items.forEach(item => {
+                const itemTotal = item.product.price * item.quantity;
+                total += itemTotal;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="${item.product.path || '/images/default.jpg'}" width="50" class="rounded me-3">
+                                <h6 class="mb-0">${item.product.name}</h6>
+                            </div>
+                        </td>
+                        <td>${item.product.price.toLocaleString()} VNĐ</td>
+                        <td>
+                            <div class="input-group input-group-sm" style="max-width: 100px;">
+                                <input type="number" class="form-control text-center" value="${item.quantity}" readonly>
+                            </div>
+                        </td>
+                        <td class="fw-bold text-success">${itemTotal.toLocaleString()} VNĐ</td>
+                        <td>
+                            <button class="btn btn-link text-danger p-0" onclick="removeFromCart(${item.product.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+
+            const totalStr = `${total.toLocaleString()} VNĐ`;
+            document.getElementById('subtotal').innerText = totalStr;
+            document.getElementById('total').innerText = totalStr;
+        }
+
+        async function removeFromCart(id) {
+            await fetch(`${CART_API_URL}/remove/${id}`, { method: 'DELETE' });
+            fetchCart();
+        }
+
+        async function checkout() {
+            if (confirm('Xác nhận đặt hàng?')) {
+                const res = await fetch(`${CART_API_URL}/checkout`, { method: 'POST' });
+                if (res.ok) {
+                    alert('Bạn đã đặt hàng thành công!');
+                    location.href = '/products';
+                } else {
+                    alert('Lỗi: Đặt hàng thất bại.');
+                }
+            }
+        }
+
+        fetchCart();
+    </script>
+</body>
+</html>
