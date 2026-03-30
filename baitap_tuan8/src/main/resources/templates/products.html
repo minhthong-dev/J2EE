@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Sản phẩm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-success">Hệ thống Quản lý Sản phẩm</h2>
+            <div class="d-flex align-items-center">
+                <a href="/cart" class="btn btn-outline-primary me-3">
+                    <i class="bi bi-cart"></i> Giỏ hàng
+                </a>
+                <div sec:authorize="isAuthenticated()" class="text-end">
+                    <span class="me-3 text-muted">Xin chào, <strong sec:authentication="name">User</strong>!</span>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Đăng xuất</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <input type="text" id="searchInput" class="form-control" placeholder="Tìm tên sản phẩm...">
+            </div>
+            <div class="col-md-3">
+                <select id="categoryFilter" class="form-select">
+                    <option value="">Tất cả danh mục</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="sortSort" class="form-select">
+                    <option value="id-asc">Mặc định</option>
+                    <option value="price-asc">Giá: Thấp -> Cao</option>
+                    <option value="price-desc">Giá: Cao -> Thấp</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100" onclick="applyFilters()">Tìm kiếm / Lọc</button>
+            </div>
+        </div>
+
+        <!-- Form Thêm/Sửa (Chỉ ADMIN) -->
+        <div class="card shadow-sm mb-4" sec:authorize="hasRole('ADMIN')">
+            <div class="card-header bg-white">
+                <h5 class="card-title my-1" id="formTitle">Thêm Sản phẩm mới</h5>
+            </div>
+            <div class="card-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tên Sản phẩm *</label>
+                            <input type="text" class="form-control" id="productName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giá (VNĐ) *</label>
+                            <input type="number" step="0.01" class="form-control" id="productPrice" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hình ảnh</label>
+                            <input type="text" class="form-control" id="productPath" placeholder="/images/product.jpg">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Danh mục *</label>
+                            <select class="form-select" id="productCategory" required></select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu Sản phẩm</button>
+                    <button type="button" class="btn btn-outline-secondary ms-2" onclick="resetForm()">Hủy</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danh sách Sản phẩm -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ảnh</th>
+                                <th>Tên</th>
+                                <th>Danh mục</th>
+                                <th>Giá (VNĐ)</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Phân trang -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <span id="pageInfo">Trang 1</span>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary me-2" id="prevBtn" onclick="prevPage()">Sau</button>
+                        <button class="btn btn-sm btn-outline-secondary" id="nextBtn" onclick="nextPage()">Tiếp</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/products';
+        const CAT_API_URL = '/api/categories';
+        const CART_API_URL = '/api/cart';
+
+        let currentPage = 0;
+        let totalPages = 0;
+
+        async function fetchCategories() {
+            const res = await fetch(CAT_API_URL);
+            const categories = await res.json();
+            const filterSelect = document.getElementById('categoryFilter');
+            const formSelect = document.getElementById('productCategory');
+            
+            categories.forEach(cat => {
+                const opt = `<option value="${cat.id}">${cat.name}</option>`;
+                filterSelect.innerHTML += opt;
+                if (formSelect) formSelect.innerHTML += opt;
+            });
+        }
+
+        async function fetchProducts() {
+            const search = document.getElementById('searchInput').value;
+            const catId = document.getElementById('categoryFilter').value;
+            const sortVal = document.getElementById('sortSort').value.split('-');
+            
+            const params = new URLSearchParams({
+                page: currentPage,
+                size: 5,
+                search: search,
+                categoryId: catId,
+                sortBy: sortVal[0],
+                direction: sortVal[1]
+            });
+
+            const res = await fetch(`${API_URL}?${params}`);
+            const data = await res.json();
+            
+            totalPages = data.totalPages;
+            document.getElementById('pageInfo').innerText = `Trang ${data.number + 1} / ${totalPages}`;
+            document.getElementById('prevBtn').disabled = data.first;
+            document.getElementById('nextBtn').disabled = data.last;
+
+            const tbody = document.getElementById('productTableBody');
+            tbody.innerHTML = '';
+            
+            data.content.forEach(p => {
+                const isAdmin = [[${#authorization.expression("hasRole('ADMIN')")}]];
+                const actions = isAdmin ? `
+                    <button class="btn btn-sm btn-warning" onclick="editProduct(${p.id}, '${p.name}', ${p.price}, '${p.path || ''}', ${p.category?.id})">Sửa</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">Xóa</button>
+                ` : `<button class="btn btn-sm btn-success" onclick="addToCart(${p.id})">Thêm vào giỏ</button>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${p.path || '/images/default.jpg'}" width="50" class="rounded"></td>
+                        <td>${p.name}</td>
+                        <td>${p.category?.name || ''}</td>
+                        <td class="text-success fw-bold">${p.price.toLocaleString()}</td>
+                        <td>${actions}</td>
+                    </tr>`;
+            });
+        }
+
+        function applyFilters() { currentPage = 0; fetchProducts(); }
+        function prevPage() { if (currentPage > 0) { currentPage--; fetchProducts(); } }
+        function nextPage() { if (currentPage < totalPages - 1) { currentPage++; fetchProducts(); } }
+
+        async function addToCart(id) {
+            const res = await fetch(`${CART_API_URL}/add?productId=${id}`, { method: 'POST' });
+            if (res.ok) alert('Đã thêm sản phẩm vào giỏ hàng!');
+            else alert('Lỗi: Cần đăng nhập để mua hàng.');
+        }
+
+        const productForm = document.getElementById('productForm');
+        if (productForm) {
+            productForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('productId').value;
+                const body = {
+                    name: document.getElementById('productName').value,
+                    price: parseFloat(document.getElementById('productPrice').value),
+                    path: document.getElementById('productPath').value,
+                    category: { id: parseInt(document.getElementById('productCategory').value) }
+                };
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/${id}` : API_URL;
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) { resetForm(); fetchProducts(); }
+            };
+        }
+
+        function editProduct(id, name, price, path, catId) {
+            document.getElementById('productId').value = id;
+            document.getElementById('productName').value = name;
+            document.getElementById('productPrice').value = price;
+            document.getElementById('productPath').value = path;
+            document.getElementById('productCategory').value = catId;
+            document.getElementById('formTitle').innerText = 'Cập nhật Sản phẩm';
+        }
+
+        function resetForm() {
+            if (productForm) productForm.reset();
+            document.getElementById('productId').value = '';
+            document.getElementById('formTitle').innerText = 'Thêm Sản phẩm mới';
+        }
+
+        async function deleteProduct(id) {
+            if (confirm('Xóa sản phẩm này?')) {
+                const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (res.ok) fetchProducts();
+            }
+        }
+
+        fetchCategories();
+        fetchProducts();
+    </script>
+</body>
+</html>
